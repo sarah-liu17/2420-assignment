@@ -1,0 +1,147 @@
+---
+title: "Christy 24"
+format: html
+editor: visual
+---
+
+# Task 1
+
+Load data and libraries we needed:
+```{r, message=FALSE, warning=FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(fitdistrplus)
+
+# Load the dataset
+data <- read_csv("banksurvey.csv")
+```
+
+We start by visualizing the distribution of customer incomes with a histogram, which gives us insight into how incomes are spread across our customer sample.
+
+```{r}
+# Histogram of incomes
+ggplot(data, aes(x = income)) + 
+  geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "income Distribution", x = "Annual Gross income (thousands)", y = "Frequency") +
+  theme_minimal()
+
+```
+The histogram reveals a right-skewed distribution, with most customers having incomes clustered in the lower range and a tail extending toward higher income levels.
+
+We calculate the summary statistics to get more detailed insights into the distribution of incomes.
+
+```{r}
+# Descriptive statistics
+summary_stats <- data |>
+  summarize(
+    Mean = mean(income),
+    Median = median(income),
+    SD = sd(income),
+    Min = min(income),
+    Max = max(income)
+  )
+summary_stats
+```
+The average income is $84,300, but the median income of $75,000 provides a more accurate representation of the typical customer due to the skewed distribution. The standard deviation of $38,200 reflects a significant variation in incomes.
+
+```{r}
+# Fit normal distribution
+fit_norm <- fitdist(data$income, "norm")
+# Fit exponential distribution
+fit_exp <- fitdist(data$income, "exp")
+# Fit gamma distribution
+fit_gamma <- fitdist(data$income, "gamma")
+
+# Summary of the fits
+summary(fit_norm)
+summary(fit_exp)
+summary(fit_gamma)
+```
+
+```{r}
+# QQ plots for the normal, exponential, and gamma distributions
+par(mfrow = c(2, 2)) # Set up plot window for multiple plots
+
+# QQ plot for normal distribution
+qqnorm(data$income)
+qqline(data$income,col = "green")
+title("Normal QQ Plot")
+
+# QQ plot for exponential distribution
+qqplot(qexp(ppoints(length(data$income)), rate = fit_exp$estimate), sort(data$income))
+abline(0, 1,col = "green")
+title("Exponential QQ Plot")
+
+# QQ plot for gamma distribution
+qqplot(qgamma(ppoints(length(data$income)), shape = fit_gamma$estimate[1], rate = fit_gamma$estimate[2]), 
+       sort(data$income))
+abline(0, 1,col = "green")
+title("Gamma QQ Plot")
+
+```
+
+# Task 4
+
+```{r}
+# Recode education levels into two groups: "University Degree" vs "No University Degree"
+data <- data |>
+  mutate(education_group = ifelse(education %in% c("Bachelor degree", "Master degree", "Doctorate"), "University Degree", "No University Degree"))
+
+# Group summary of income by education group
+income_education_summary <- data |>
+  group_by(education_group) |>
+  summarise(mean_income = mean(income), sd_income = sd(income), n = n())
+
+print(income_education_summary)
+
+```
+
+## Visualizing Income Distribution by Education Level
+```{r}
+# Boxplot comparing income across all education levels
+ggplot(data, aes(x = education, y = income, fill = education)) +
+  geom_boxplot() +
+  ggtitle('Income Distribution by Education Level') +
+  xlab('Education Level') +
+  ylab('Income (in thousands of dollars)')
+
+# Violin plot comparing income distribution across education levels
+ggplot(data, aes(x = education, y = income, fill = education)) +
+  geom_violin(trim = FALSE) +
+  ggtitle('Violin Plot: Income by Education Level') +
+  xlab('Education Level') +
+  ylab('Income (in thousands of dollars)')
+
+```
+
+## Confidence Interval for the Difference in Mean Incomes
+```{r}
+# Subset data into two groups
+university_graduates <- data |> filter(education_group == "University Degree")
+non_graduates <- data |> filter(education_group == "No University Degree")
+
+# Calculate the mean difference and confidence interval
+mean_diff <- mean(university_graduates$income) - mean(non_graduates$income)
+
+# Perform a t-test to get the confidence interval
+t_test_result <- t.test(university_graduates$income, non_graduates$income, var.equal = FALSE)
+
+# Print the results
+print(mean_diff)
+print(t_test_result$conf.int)
+
+```
+## Central Limit Theorem
+```{r}
+# Check the sample sizes of each group
+table(data$education_group)
+
+# Histograms to check normality
+ggplot(data, aes(x = income)) +
+  geom_histogram(bins = 30, fill = 'blue', alpha = 0.6) +
+  facet_wrap(~education_group) +
+  ggtitle('Income Distribution by Education Group')
+
+```
+
