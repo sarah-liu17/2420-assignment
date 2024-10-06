@@ -1,0 +1,83 @@
+---
+title: "ETC5242 Assignment 1 - Group 31"
+author: "Ma Sun Yan Joanna 33775877"
+date: "2024-10-06"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE, error = FALSE)
+```
+
+```{r library}
+
+# Library
+library(tidyverse)
+library(kableExtra)
+
+```
+
+
+This report conducts statistic analysis of bank customers, based on a database including data of 200 customers' annual gross income and education level.
+
+# Task 1
+
+First part would be some distribution plots and descriptive statistics of the data, and fitted distribution model.  
+
+```{r read_data}
+
+# Read in data
+bank <- read_csv(here::here("data/banksurvey.csv"))
+
+```
+
+```{r desc_plot}
+
+# Descriptive bar plot
+bank %>% 
+  group_by(education) %>% 
+  summarise(perc = n()/nrow(bank) * 100) %>% 
+  as.data.frame() %>% 
+  ggplot(aes(x = fct_reorder(education, -perc), 
+             y = perc)) + 
+  geom_col() + 
+  theme_bw() + 
+  labs(x = "Education Level", 
+       y = "Percentage", 
+       title = "Education level of bank customers") + 
+  geom_label(aes(label = paste0(perc, "%"), 
+                 vjust = 0.5))
+
+```
+
+The bar plot shows that most of the surveyed bank customers achieved a highest education level of bachelor's degree (66%), followed by master's and high school with similar percentage, and 2% hold a doctorate degree.  
+
+```{r desc_stat}
+
+# Descriptive statistics
+bank %>% 
+  summarise(Min = min(income), 
+            Q1 = round(quantile(income, 0.25), 1), 
+            Median = round(median(income), 1), 
+            Mean = round(mean(income), 1), 
+            Q3 = round(quantile(income, 0.75), 1), 
+            Max = max(income)) %>% 
+  kable(caption = "Annual gross income of bank customers (in thousands)")
+
+```
+
+The above table shows the descriptive
+
+
+Explanation what analysis
+results plots numerical, conclusion
+Details about analysis choice and assumption for statistican
+summary of method and findings and key assumptions for manager
+
+# Task 2
+
+# Task 3
+
+# Task 4
+
+# Task 5
