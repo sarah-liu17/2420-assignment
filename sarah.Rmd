@@ -1,0 +1,79 @@
+---
+title: "a1"
+author: "sarah"
+date: "2024-09-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE,
+message = FALSE, error = FALSE)
+library(tidyverse)
+library(ggplot2)
+library(MASS)
+
+```
+
+```{r, include=FALSE, echo=FALSE, eval=TRUE}
+survey <- read_csv(here::here("data/banksurvey.csv"))
+```
+
+Explanations of what analyses you are carrying out.
+• The results of your analyses (including plots, numerical results, and conclusions).
+• Enough details about your analysis choices and assumptions so that someone with technical knowledge
+(e.g., another statistician) would understand them and could replicate your work.
+• A summary of your methods and findings, and any key assumptions, in a form that would be understandable to the manager (e.g., using non-technical language).
+
+# TASK 1
+
+# TASK 2
+```{r}
+survey %>% ggplot(aes(x = income)) + geom_histogram()
+```
+
+
+```{r}
+B <- 5000  # Number of bootstrap samples
+n <- length(survey$income)
+
+sample_boot_80th <- rep(NA, B)  
+normal_boot_80th <- rep(NA, B)    # For the 80th percentile from a Normal distribution
+exp_boot_80th    <- rep(NA, B)    # For the 80th percentile from an Exponential distribution
+gamma_boot_80th  <- rep(NA, B) 
+
+for(b in 1:B) {
+  # Generating a bootstrap sample
+  boot_sample <- sample(survey$income, size = n, replace = TRUE)
+  
+  norm_fit <- fitdistr(boot_sample, "normal")
+  exp_fit  <- fitdistr(boot_sample, "exponential")
+  gamma_fit <- fitdistr(boot_sample, "gamma")
+  
+  normal_boot_80th[b] <- qnorm(0.80, mean = norm_fit$estimate["mean"], sd = norm_fit$estimate["sd"])
+  exp_boot_80th[b]    <- qexp(0.80, rate = exp_fit$estimate["rate"])
+  gamma_boot_80th[b]  <- qgamma(0.80, shape = gamma_fit$estimate["shape"], rate = gamma_fit$estimate["rate"])
+  
+  sample_boot_80th[b] <- quantile(boot_sample, type = 7)
+  }
+
+# Confidence interval 95%
+normal_ci_80th <- quantile(normal_boot_80th, c(0.025, 0.975))
+exp_ci_80th    <- quantile(exp_boot_80th, c(0.025, 0.975))
+gamma_ci_80th  <- quantile(gamma_boot_80th, c(0.025, 0.975))
+sample_ci_80th <- quantile(sample_boot_80th, c(0.025, 0.975))
+
+
+```
+Non-Model-Based Estimator:
+
+Sample Quantile: We calculate the 80th percentile directly from the bootstrap sample using the quantile() function, which doesn't rely on any model assumptions.
+
+Bootstrap CI:
+
+We calculate 95% confidence intervals for each estimator by taking the 2.5th and 97.5th percentiles of the bootstrapped 80th percentile estimates.
+
+# TASK 3
+
+# TASK 4
+
+# TASK 5
