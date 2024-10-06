@@ -1,32 +1,63 @@
 ---
 title: "Christy 24"
-format: html
+format: pdf
 editor: visual
 ---
 
+This report conducts statistic analysis of bank customers, based on a database including data of 200 customers' annual gross income and education level.
+
 # Task 1
 
+First part would be some distribution plots and descriptive statistics of the data, and fitted distribution model.
+
 Load data and libraries we needed:
+
 ```{r, message=FALSE, warning=FALSE}
 # Load necessary libraries
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
+library(kableExtra)
 library(fitdistrplus)
 
 # Load the dataset
-data <- read_csv("banksurvey.csv")
+data <- read_csv("data/banksurvey.csv")
 ```
 
-We start by visualizing the distribution of customer incomes with a histogram, which gives us insight into how incomes are spread across our customer sample.
+The first plot is about the education level of bank customers.
+
+```{r}
+
+# Descriptive bar plot
+data %>% 
+  group_by(education) %>% 
+  summarise(perc = n()/nrow(data) * 100) %>% 
+  as.data.frame() %>% 
+  ggplot(aes(x = fct_reorder(education, -perc), 
+             y = perc, 
+             fill = education)) + 
+  geom_col(color = "black") + 
+  theme_minimal() + 
+  labs(x = "Education Level", 
+       y = "Percentage", 
+       title = "Education level of bank customers") + 
+  geom_label(aes(label = paste0(perc, "%"), 
+                 vjust = 0.5)) + 
+  guides(fill = "none")
+
+```
+
+The bar plot shows that most of the surveyed bank customers achieved a highest education level of bachelor's degree (66%), followed by master's and high school with similar percentage, and 2% hold a doctorate degree.
+
+The second part is visualizing the distribution of customer incomes with a histogram, which gives us insight into how incomes are spread across our customer sample.
 
 ```{r}
 # Histogram of incomes
 ggplot(data, aes(x = income)) + 
   geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
-  labs(title = "income Distribution", x = "Annual Gross income (thousands)", y = "Frequency") +
+  labs(title = "Income Distribution", x = "Annual Gross income (thousands)", y = "Frequency") +
   theme_minimal()
 
 ```
+
 The histogram reveals a right-skewed distribution, with most customers having incomes clustered in the lower range and a tail extending toward higher income levels.
 
 We calculate the summary statistics to get more detailed insights into the distribution of incomes.
@@ -35,15 +66,20 @@ We calculate the summary statistics to get more detailed insights into the distr
 # Descriptive statistics
 summary_stats <- data |>
   summarize(
-    Mean = mean(income),
+    Mean = round(mean(income), 1),
     Median = median(income),
-    SD = sd(income),
+    SD = round(sd(income), 1),
     Min = min(income),
     Max = max(income)
   )
-summary_stats
+
+kable(summary_stats, 
+      caption = "Statistics of annual gross income of bank customers (thousands)")
 ```
-The average income is $84,300, but the median income of $75,000 provides a more accurate representation of the typical customer due to the skewed distribution. The standard deviation of $38,200 reflects a significant variation in incomes.
+
+The average income is \$89,200, but the median income of \$58,700 provides a more accurate representation of the typical customer due to the skewed distribution. The standard deviation of \$87,600 reflects a significant variation in incomes.
+
+The next part will be exploring fitting models, including normal, exponential and gamma distribution.
 
 ```{r}
 # Fit normal distribution
@@ -53,11 +89,27 @@ fit_exp <- fitdist(data$income, "exp")
 # Fit gamma distribution
 fit_gamma <- fitdist(data$income, "gamma")
 
-# Summary of the fits
-summary(fit_norm)
-summary(fit_exp)
-summary(fit_gamma)
+# Normal distribution summary
+tibble(Parameter = c("Mean", "Standard Deviation"), 
+       Estimate = fit_norm$estimate, 
+       'Standard Error' = fit_norm$sd) %>% 
+  kable(caption = "Maximum likelihood estimates of fitted normal distribution model")
+
+# Exponential distribution summary
+tibble(Parameter = "Rate", 
+       Estimate = fit_exp$estimate, 
+       'Standard Error' = fit_exp$sd) %>% 
+  kable(caption = "Maximum likelihood estimates of fitted exponential distribution model")
+
+# Gamma distribution summary
+tibble(Parameter = c("Shape", "Rate"), 
+       Estimate = fit_gamma$estimate, 
+       'Standard Error' = fit_gamma$sd) %>% 
+  kable(caption = "Maximum likelihood estimates of fitted gamma distribution model")
+
 ```
+
+Above tables showed the maximum likelihood estimates of the 3 fitted models.
 
 ```{r}
 # QQ plots for the normal, exponential, and gamma distributions
@@ -69,53 +121,78 @@ qqline(data$income,col = "green")
 title("Normal QQ Plot")
 
 # QQ plot for exponential distribution
-qqplot(qexp(ppoints(length(data$income)), rate = fit_exp$estimate), sort(data$income))
+qqplot(qexp(ppoints(length(data$income)), 
+            rate = fit_exp$estimate), 
+       sort(data$income), 
+       xlab = "Theoretical Quantiles", 
+       ylab = "Sample Quantiles")
 abline(0, 1,col = "green")
 title("Exponential QQ Plot")
 
 # QQ plot for gamma distribution
-qqplot(qgamma(ppoints(length(data$income)), shape = fit_gamma$estimate[1], rate = fit_gamma$estimate[2]), 
-       sort(data$income))
+qqplot(qgamma(ppoints(length(data$income)), 
+              shape = fit_gamma$estimate[1], 
+              rate = fit_gamma$estimate[2]), 
+       sort(data$income), 
+       xlab = "Theoretical Quantiles", 
+       ylab = "Sample Quantiles")
 abline(0, 1,col = "green")
 title("Gamma QQ Plot")
 
 ```
 
+Seems like both exponential and gamma distribution models fit the data better than normal distribution. In particular, exponential distribution is slightly better than gamma.
+
 # Task 4
+
+This section will be focusing on the relationship between customer education level and income.
 
 ```{r}
 # Recode education levels into two groups: "University Degree" vs "No University Degree"
 data <- data |>
-  mutate(education_group = ifelse(education %in% c("Bachelor degree", "Master degree", "Doctorate"), "University Degree", "No University Degree"))
+  mutate(education_group = ifelse(education %in% c("Bachelor", "Master", "Doctorate"), 
+                                  "University Degree", "No University Degree"))
 
 # Group summary of income by education group
 income_education_summary <- data |>
   group_by(education_group) |>
-  summarise(mean_income = mean(income), sd_income = sd(income), n = n())
+  summarise(mean_income = round(mean(income), 1), 
+            sd_income = round(sd(income), 1), 
+            n = n())
 
-print(income_education_summary)
+kable(income_education_summary, 
+      caption = "Income comparison of university degree holders")
 
 ```
 
+University degree holders have a higher mean income and standard deviation, with a difference of \$28,400 in mean compared to non-univeristy degree holders.
+
 ## Visualizing Income Distribution by Education Level
+
 ```{r}
+# Order education levels
+data$education <- factor(data$education, 
+                         levels = c("High school", 
+                                    "Bachelor", 
+                                    "Master", 
+                                    "Doctorate"))
+
 # Boxplot comparing income across all education levels
 ggplot(data, aes(x = education, y = income, fill = education)) +
   geom_boxplot() +
+  theme_minimal() + 
   ggtitle('Income Distribution by Education Level') +
   xlab('Education Level') +
-  ylab('Income (in thousands of dollars)')
-
-# Violin plot comparing income distribution across education levels
-ggplot(data, aes(x = education, y = income, fill = education)) +
-  geom_violin(trim = FALSE) +
-  ggtitle('Violin Plot: Income by Education Level') +
-  xlab('Education Level') +
-  ylab('Income (in thousands of dollars)')
-
+  ylab('Annual gross income (thousands)') + 
+  guides(fill = "none")
 ```
 
+The boxplot showed that the median of annual gross income increases as the education level gets higher. While there is a huge gap between median income of master and doctorate degree holders, the range of doctorate's income is much narrower, and the maximum point is lower than the other 3 education groups as well.
+
 ## Confidence Interval for the Difference in Mean Incomes
+
+To compare the difference in income of customer who hold a university degree or not, t-test will be conducted to calculate the confidence interval for the difference in mean incomes.
+
 ```{r}
 # Subset data into two groups
 university_graduates <- data |> filter(education_group == "University Degree")
@@ -128,20 +205,39 @@ mean_diff <- mean(university_graduates$income) - mean(non_graduates$income)
 t_test_result <- t.test(university_graduates$income, non_graduates$income, var.equal = FALSE)
 
 # Print the results
-print(mean_diff)
-print(t_test_result$conf.int)
+kable(round(mean_diff, 1), 
+      caption = "Difference in mean income (thousands)", 
+      col.names = "")
+
+kable(round(t_test_result$conf.int, 1), 
+      caption = "95% confidence interval of difference in mean income (thousands)", 
+      col.names = "")
 
 ```
-## Central Limit Theorem
-```{r}
-# Check the sample sizes of each group
-table(data$education_group)
 
+The difference in mean of annual gross income of customers who hold a university degree or not is \$28,400, with a 95% confidence interval of -\$1,700 and \$58,500.
+
+## Central Limit Theorem
+
+This part discusses whether it is appropriate to use the Central Limit Theorem when calculating the above confidence interval.
+
+```{r}
 # Histograms to check normality
 ggplot(data, aes(x = income)) +
   geom_histogram(bins = 30, fill = 'blue', alpha = 0.6) +
   facet_wrap(~education_group) +
   ggtitle('Income Distribution by Education Group')
 
+# Check the sample sizes of each group
+table(data$education_group) %>% 
+  kable(col.names = c("Education level", "Count"), 
+        caption = "Sample size of education groups")
 ```
 
+To use t-test to calculate confidence interval, the sample needs to be normally distributed. But according to the above plots, both groups are not normally distributed. In this case, Central Limit Theorem is needed, which states that the sample mean gets closer to normal distribution as the sample size increases, even if the data are not under normal distribution. Since both groups have a sample size of at least 30, Central Limit Theorem is applicable and t-test could still be used to calculate confidence interval.
+
+## Causation of Education and Income
+
+This section of analysis about education level and income seem to show that the average income would be higher as education level increases. However, these are not evidences of a causal effect. As shown in the t-test results that the confidence interval showed a large positive difference, this could imply that income has a positive relationship with education level, but it could not be summarized with causation that providing greater education would lead to higher incomes.
+
+There could be other underlying factors that are not revealed in this analysis, such as people with higher income have adequate financial support for education, or people in higher level positions are likely to be required by company to complete certain level of education. A positive relationship does not imply causation.

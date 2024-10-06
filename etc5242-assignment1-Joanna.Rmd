@@ -61,12 +61,13 @@ bank %>%
             Median = round(median(income), 1), 
             Mean = round(mean(income), 1), 
             Q3 = round(quantile(income, 0.75), 1), 
-            Max = max(income)) %>% 
+            Max = max(income),
+            sd = sd(income)) %>% 
   kable(caption = "Annual gross income of bank customers (in thousands)")
 
 ```
 
-The above table shows the descriptive
+The above table shows the descriptive statistics of the annual gross income in the previous financial year
 
 
 Explanation what analysis
