@@ -77,6 +77,64 @@ summary of method and findings and key assumptions for manager
 
 # Task 2
 
+In this section, it will focus on estimating the 80th percentile of annual income of customers. In addition, 95% confidence intervals based on each of the estimators will be calculated.
+
+```{r Task2-1}
+# Estimate the 80th percentile using estimators based on fitted model
+q80_normal <- qnorm(0.80, mean = fit_norm$estimate[1], sd = fit_norm$estimate[2])
+q80_exponential <- qexp(0.80, rate=fit_exp$estimate)
+q80_gamma <- qgamma(0.80, shape=fit_gamma$estimate[1], rate=fit_gamma$estimate[2])
+
+# Create a tibble based on these results
+results <- tibble(
+  Distribution = c("Normal", "Exponential", "Gamma"),
+  `80th Percentile Estimate` = c(q80_normal, q80_exponential, q80_gamma))
+
+
+kable(results, caption = "80th Percentile Estimates based on Different Models")
+```
+
+The parameter of interest is the 80th percentile of the annual income distribution. It indicates the income level at which 80% of the customers earn less than this amount.
+
+Although we can estimate the 80th percentile of annual income based on a particular model, it is also possible to use a statistic called 'sample quantile', which is an estimator that does not assume any specific model.
+
+```{r Task2-2}
+# Using sample quantile to estimate
+q80_sample <- quantile(data$income, probs = 0.80)
+
+new_results <- tibble(
+  Distribution = c("Normal", "Exponential", "Gamma","Sample"),
+  `80th Percentile Estimate` = c(q80_normal, q80_exponential, q80_gamma,q80_sample))
+
+
+kable(new_results, caption = "80th Percentile Estimates based on Different Models")
+```
+
+```{r Task2-3}
+# Calculate the 95% CI for the estimates
+
+# Normal distribution 95% CI
+se_normal <- fit_norm$estimate[2] / sqrt(length(data$income))  
+ci_normal <- q80_normal + c(-1.96, 1.96) * se_normal
+
+# Exponential distribution 95% CI
+se_exp <- sqrt(1 / (length(data$income) * fit_exp$estimate^2))
+ci_exp <- q80_exponential + c(-1.96, 1.96) * se_exp
+
+# Gamma distribution 95% CI
+se_gamma <- sqrt(fit_gamma$estimate[1] / (fit_gamma$estimate[2]^2 * length(data$income)))
+ci_gamma <- q80_gamma + c(-1.96, 1.96) * se_gamma
+
+ci_results <- tibble(
+  Distribution = c("Normal", "Exponential", "Gamma"),
+  `80th Percentile Estimate` = c(q80_normal, q80_exponential, q80_gamma),
+  `Lower Bound (95% CI)` = c(ci_normal[1], ci_exp[1], ci_gamma[1]),
+  `Upper Bound (95% CI)` = c(ci_normal[2], ci_exp[2], ci_gamma[2])
+)
+
+kable(ci_results, caption = "80th Percentile Estimates and 95% Confidence Intervals for Different Distributions")
+```
+
 # Task 3
 
 # Task 4
