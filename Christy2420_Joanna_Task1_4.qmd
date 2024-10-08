@@ -230,7 +230,83 @@ kable(ci_results, caption = "80th Percentile Estimates and 95% Confidence Interv
 
 # Task 3
 
+```{r}
 
+set.seed(2420)
+# 设定参数
+true_mean <- 100  
+lambda <- 1 / true_mean  
+n_sample <- 100  
+n_bootstrap <- 1000  
+
+# Generate simulated data following an exponential distribution
+original_data <- rexp(n_sample, rate = lambda)
+
+# Define a function to calculate the 80th percentile
+estimate_quantiles <- function(data, indices) {
+  sample_data <- data[indices]  # Bootstrap 采样
+  
+   # Fit normal, exponential, and gamma distributions
+  normal_fit <- fitdist(sample_data, "norm")
+  exp_fit <- fitdist(sample_data, "exp")
+  gamma_fit <- fitdist(sample_data, "gamma")
+  
+  # Return to 80th percentile
+  c(
+    qnorm(0.80, mean = normal_fit$estimate[1], sd = normal_fit$estimate[2]),
+    qexp(0.80, rate = exp_fit$estimate),
+    qgamma(0.80, shape = gamma_fit$estimate[1], rate = gamma_fit$estimate[2])
+  )
+}
+
+# Bootstrap sampling
+bootstrap_results <- boot(data = original_data, statistic = estimate_quantiles, R = n_bootstrap)
+
+# Extract results
+normal_estimates <- bootstrap_results$t[, 1]  
+exp_estimates <- bootstrap_results$t[, 2]     
+gamma_estimates <- bootstrap_results$t[, 3]   
+
+# Calculate the bias and standard deviation
+true_80th_percentile <- qexp(0.80, rate = lambda)  # 指数分布下的真实80%分位数
+bias_normal <- mean(normal_estimates) - true_80th_percentile
+bias_exp <- mean(exp_estimates) - true_80th_percentile
+bias_gamma <- mean(gamma_estimates) - true_80th_percentile
+
+sd_normal <- sd(normal_estimates)
+sd_exp <- sd(exp_estimates)
+sd_gamma <- sd(gamma_estimates)
+
+# Print results
+cat("Bias and SD for Normal Estimate:\n Bias:", bias_normal, " SD:", sd_normal, "\n")
+cat("Bias and SD for Exponential Estimate:\n Bias:", bias_exp, " SD:", sd_exp, "\n")
+cat("Bias and SD for Gamma Estimate:\n Bias:", bias_gamma, " SD:", sd_gamma, "\n")
+
+```
+
+```{r}
+
+# Visualize the sampling distribution of the normal estimator
+ggplot(data.frame(normal_estimates), aes(x = normal_estimates)) +
+  geom_histogram(binwidth = 5, fill = "blue", alpha = 0.5) +
+  labs(title = "Bootstrap Sampling Distribution of Normal Estimator", x = "80th Percentile Estimate")
+```
+
+
+```{r}
+# Visualize the sampling distribution of the exponential estimator
+ggplot(data.frame(exp_estimates), aes(x = exp_estimates)) +
+  geom_histogram(binwidth = 5, fill = "red", alpha = 0.5) +
+  labs(title = "Bootstrap Sampling Distribution of Exponential Estimator", x = "80th Percentile Estimate")
+```
+
+
+```{r}
+#Visualize the sampling distribution of the gamma estimator
+ggplot(data.frame(gamma_estimates), aes(x = gamma_estimates)) +
+  geom_histogram(binwidth = 5, fill = "purple", alpha = 0.5) +
+  labs(title = "Bootstrap Sampling Distribution of Gamma Estimator", x = "80th Percentile Estimate")
+```
 
 
 
