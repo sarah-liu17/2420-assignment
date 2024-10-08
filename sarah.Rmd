@@ -11,8 +11,8 @@ message = FALSE, error = FALSE)
 library(tidyverse)
 library(ggplot2)
 library(MASS)
-
-```
+library(kableExtra)
+`````````
 
 ```{r, include=FALSE, echo=FALSE, eval=TRUE}
 survey <- read_csv(here::here("data/banksurvey.csv"))
@@ -24,7 +24,8 @@ Explanations of what analyses you are carrying out.
 (e.g., another statistician) would understand them and could replicate your work.
 • A summary of your methods and findings, and any key assumptions, in a form that would be understandable to the manager (e.g., using non-technical language).
 
-# TASK 1
+
+
 
 # TASK 2
 ```{r}
@@ -74,6 +75,115 @@ We calculate 95% confidence intervals for each estimator by taking the 2.5th and
 
 # TASK 3
 
+
+```{r}
+
+normal_80th_sim <- numeric(B)
+exp_80th_sim <- numeric(B)
+gamma_80th_sim <- numeric(B)
+sample_80th_sim <- numeric(B)
+
+# Simulate the sampling distribution
+for(b in 1:B) {
+  # Generate random sample from Exponential distribution
+  sample_data <- rexp(n, lambda)
+  
+  # Fit Normal distribution and calculate the 80th percentile
+  norm_fit <- tryCatch(fitdist(sample_data, "norm"), error = function(e) NULL)
+  if (!is.null(norm_fit)) {
+    normal_80th_sim[b] <- qnorm(0.80, mean = norm_fit$estimate["mean"], sd = norm_fit$estimate["sd"])
+  }
+  
+  # Fit Exponential distribution and calculate the 80th percentile
+  exp_rate <- 1 / mean(sample_data)  # MLE for the rate parameter
+  exp_80th_sim[b] <- qexp(0.80, rate = exp_rate)
+  
+  # Fit Gamma distribution and calculate the 80th percentile
+  gamma_fit <- tryCatch(fitdist(sample_data, "gamma"), error = function(e) NULL)
+  if (!is.null(gamma_fit)) {
+    gamma_80th_sim[b] <- qgamma(0.80, shape = gamma_fit$estimate["shape"], scale = gamma_fit$estimate["scale"])
+  }
+  
+  # Sample quantile estimate
+  sample_80th_sim[b] <- quantile(sample_data, 0.80)
+}
+
+# Remove NA values from estimators
+normal_80th_sim <- na.omit(normal_80th_sim)
+gamma_80th_sim <- na.omit(gamma_80th_sim)
+
+# Calculate the true 80th percentile from the exponential distribution
+true_80th_percentile <- qexp(0.80, rate = lambda)
+
+# Calculate bias and standard deviation for each estimator
+bias_normal <- mean(normal_80th_sim) - true_80th_percentile
+bias_exp <- mean(exp_80th_sim) - true_80th_percentile
+bias_gamma <- mean(gamma_80th_sim) - true_80th_percentile
+bias_sample <- mean(sample_80th_sim) - true_80th_percentile
+
+sd_normal <- sd(normal_80th_sim)
+sd_exp <- sd(exp_80th_sim)
+sd_gamma <- sd(gamma_80th_sim)
+sd_sample <- sd(sample_80th_sim)
+
+# Print summary statistics
+cat("\nBias and Standard Deviation of 80th Percentile Estimates:\n")
+cat("Normal: Bias =", bias_normal, ", SD =", sd_normal, "\n")
+cat("Exponential: Bias =", bias_exp, ", SD =", sd_exp, "\n")
+cat("Gamma: Bias =", bias_gamma, ", SD =", sd_gamma, "\n")
+cat("Sample Quantile: Bias =", bias_sample, ", SD =", sd_sample, "\n")
+
+# Plotting the sampling distributions
+df_normal <- data.frame(Estimates = normal_80th_sim, Method = "Normal")
+df_exp <- data.frame(Estimates = exp_80th_sim, Method = "Exponential")
+df_gamma <- data.frame(Estimates = gamma_80th_sim, Method = "Gamma")
+df_sample <- data.frame(Estimates = sample_80th_sim, Method = "Sample Quantile")
+
+# Combine all data for plotting
+df_all <- rbind(df_normal, df_exp, df_gamma, df_sample)
+
+
+# Create density plots
+ggplot(df_all, aes(x = Estimates, fill = Method)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Density of 80th Percentile Estimates", x = "Estimates", y = "Density") +
+  xlim(120000, 230000)+
+  theme_minimal()
+
+ggplot(df_gamma, aes(x = Estimates)) +
+  geom_density(alpha = 0.5, color = "purple") 
+
+```
+
+
+
+```{r}
+library(ggplot2)
+df <- data.frame(
+ 
+  Exponential = exp_estimates,
+  Gamma = gamma_estimates
+)
+
+# Reshape data for plotting
+df_long <- reshape2::melt(df)
+
+# Create a density plot
+ggplot(df_long, aes(x = value, fill = variable)) +
+  geom_density(alpha = 0.4) +
+  labs(title = "Sampling Distribution of 80th Percentile Estimators", x = "80th Percentile Estimate", y = "Density") +
+  theme_minimal()
+```
+The gamma distribution providing a better fit for data that exhibit skewness or have a more complex shape compared to the exponential distribution.
 # TASK 4
 
 # TASK 5
+
+
+
+
+
+
+
+
+
