@@ -1,6 +1,6 @@
 ---
 title: "Group31 ETC5242 Assignment 1"
-author: "Christy Lai s29252229, MA Sun Yan Joanna 33775877"
+author: "Christy Lai 29252229, MA Sun Yan Joanna 33775877, Jiwen Zhou 33529086"
 format: pdf
 editor: visual
 ---
@@ -31,7 +31,7 @@ First part would be some distribution plots and descriptive statistics of the da
 
 Load data and libraries we needed:
 
-```{r, message=FALSE, warning=FALSE}
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
 library(tidyverse)
 library(kableExtra)
@@ -41,7 +41,7 @@ library(MASS)
 library(boot)
 
 # Load the dataset
-data <- read_csv("data/banksurvey.csv")
+bank_data <- read_csv("data/banksurvey.csv")
 ```
 
 The first plot is about the education level of bank customers.
@@ -49,9 +49,9 @@ The first plot is about the education level of bank customers.
 ```{r}
 
 # Descriptive bar plot
-data %>% 
+bank_data %>% 
   group_by(education) %>% 
-  summarise(perc = n()/nrow(data) * 100) %>% 
+  summarise(perc = n()/nrow(bank_data) * 100) %>% 
   as.data.frame() %>% 
   ggplot(aes(x = fct_reorder(education, -perc), 
              y = perc, 
@@ -73,7 +73,7 @@ The second part is visualizing the distribution of customer incomes with a histo
 
 ```{r}
 # Histogram of incomes
-ggplot(data, aes(x = income)) + 
+ggplot(bank_data, aes(x = income)) + 
   geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
   labs(title = "Income Distribution", x = "Annual Gross income (thousands)", y = "Frequency") +
   theme_minimal()
@@ -86,7 +86,7 @@ We calculate the summary statistics to get more detailed insights into the distr
 
 ```{r}
 # Descriptive statistics
-summary_stats <- data |>
+summary_stats <- bank_data |>
   summarize(
     Mean = round(mean(income), 1),
     Median = median(income),
@@ -105,11 +105,11 @@ The next part will be exploring fitting models, including normal, exponential an
 
 ```{r}
 # Fit normal distribution
-fit_norm <- fitdist(data$income, "norm")
+fit_norm <- fitdist(bank_data$income, "norm")
 # Fit exponential distribution
-fit_exp <- fitdist(data$income, "exp")
+fit_exp <- fitdist(bank_data$income, "exp")
 # Fit gamma distribution
-fit_gamma <- fitdist(data$income, "gamma")
+fit_gamma <- fitdist(bank_data$income, "gamma")
 
 # Normal distribution summary
 tibble(Parameter = c("Mean", "Standard Deviation"), 
@@ -138,24 +138,24 @@ Above tables showed the maximum likelihood estimates of the 3 fitted models.
 par(mfrow = c(2, 2)) # Set up plot window for multiple plots
 
 # QQ plot for normal distribution
-qqnorm(data$income)
-qqline(data$income,col = "green")
+qqnorm(bank_data$income)
+qqline(bank_data$income,col = "green")
 title("Normal QQ Plot")
 
 # QQ plot for exponential distribution
-qqplot(qexp(ppoints(length(data$income)), 
+qqplot(qexp(ppoints(length(bank_data$income)), 
             rate = fit_exp$estimate), 
-       sort(data$income), 
+       sort(bank_data$income), 
        xlab = "Theoretical Quantiles", 
        ylab = "Sample Quantiles")
 abline(0, 1,col = "green")
 title("Exponential QQ Plot")
 
 # QQ plot for gamma distribution
-qqplot(qgamma(ppoints(length(data$income)), 
+qqplot(qgamma(ppoints(length(bank_data$income)), 
               shape = fit_gamma$estimate[1], 
               rate = fit_gamma$estimate[2]), 
-       sort(data$income), 
+       sort(bank_data$income), 
        xlab = "Theoretical Quantiles", 
        ylab = "Sample Quantiles")
 abline(0, 1,col = "green")
@@ -184,13 +184,15 @@ results <- tibble(
 kable(results, caption = "80th Percentile Estimates based on Different Models")
 ```
 
-The parameter of interest is the 80th percentile of the annual income distribution. It indicates the income level at which 80% of the customers earn less than this amount.
+The parameter of interest is the 80th percentile of the annual income distribution. It indicates the income level at which 80% of the customers earn less than this amount. In task1, we have already fitted three distributions, which are normal, exponential and gamma distribution. Therefore, in this analysis, we use these three distributions to estimate the 80th percentile.
+
+Through Table5, we can see that the normal model has the highest 80th percentile estimate, while the exponential and gamma estimates are lower. However, annual income shows a right-skewed distribution, which indicates that most people are at a lower income level, and few of them has a high salary. The normal distribution assumes the data is normally distributed, therefore, it will make the 80th percentile larger, which is not true. So, exponential and gamma estimates seem better.
 
 Although we can estimate the 80th percentile of annual income based on a particular model, it is also possible to use a statistic called 'sample quantile', which is an estimator that does not assume any specific model.
 
 ```{r Task2-2}
 # Using sample quantile to estimate
-q80_sample <- quantile(data$income, probs = 0.80)
+q80_sample <- quantile(bank_data$income, probs = 0.80)
 
 new_results <- tibble(
   Distribution = c("Normal", "Exponential", "Gamma","Sample"),
@@ -200,19 +202,21 @@ new_results <- tibble(
 kable(new_results, caption = "80th Percentile Estimates based on Different Models")
 ```
 
+After that, we can calculate the 95% confidence intervals for the estimates.
+
 ```{r Task2-3}
 # Calculate the 95% CI for the estimates
 
 # Normal distribution 95% CI
-se_normal <- fit_norm$estimate[2] / sqrt(length(data$income))  
+se_normal <- fit_norm$estimate[2] / sqrt(length(bank_data$income))  
 ci_normal <- q80_normal + c(-1.96, 1.96) * se_normal
 
 # Exponential distribution 95% CI
-se_exp <- sqrt(1 / (length(data$income) * fit_exp$estimate^2))
+se_exp <- sqrt(1 / (length(bank_data$income) * fit_exp$estimate^2))
 ci_exp <- q80_exponential + c(-1.96, 1.96) * se_exp
 
 # Gamma distribution 95% CI
-se_gamma <- sqrt(fit_gamma$estimate[1] / (fit_gamma$estimate[2]^2 * length(data$income)))
+se_gamma <- sqrt(fit_gamma$estimate[1] / (fit_gamma$estimate[2]^2 * length(bank_data$income)))
 ci_gamma <- q80_gamma + c(-1.96, 1.96) * se_gamma
 
 ci_results <- tibble(
@@ -224,6 +228,8 @@ ci_results <- tibble(
 
 kable(ci_results, caption = "80th Percentile Estimates and 95% Confidence Intervals for Different Distributions")
 ```
+
+In conclusion, the key statistical idea is that we use three different models, normal, exponential and gamma to estimate the 80th percentile, along with the sample based estimate for comparison. Based on the results, the 80th percentile of the normal model(162.7428) is significantly higher than the sample estimate(146.5600). However, the exponential and gamma estimates are similar and close to the sample estimate. Therefore, they are more useful and reliable than the normal estimate.
 
 # Task 3
 
@@ -240,8 +246,8 @@ n_bootstrap <- 1000
 original_data <- rexp(n_sample, rate = lambda)
 
 # Define a function to calculate the 80th percentile
-estimate_quantiles <- function(data, indices) {
-  sample_data <- data[indices]  # Bootstrap
+estimate_quantiles <- function(bank_data, indices) {
+  sample_data <- bank_data[indices]  # Bootstrap
   
    # Fit normal, exponential, and gamma distributions
   normal_fit <- fitdist(sample_data, "norm")
@@ -310,12 +316,12 @@ This section will be focusing on the relationship between customer education lev
 
 ```{r}
 # Recode education levels into two groups: "University Degree" vs "No University Degree"
-data <- data |>
+bank_data <- bank_data |>
   mutate(education_group = ifelse(education %in% c("Bachelor", "Master", "Doctorate"), 
                                   "University Degree", "No University Degree"))
 
 # Group summary of income by education group
-income_education_summary <- data |>
+income_education_summary <- bank_data |>
   group_by(education_group) |>
   summarise(mean_income = round(mean(income), 1), 
             sd_income = round(sd(income), 1), 
@@ -332,14 +338,14 @@ University degree holders have a higher mean income and standard deviation, with
 
 ```{r}
 # Order education levels
-data$education <- factor(data$education, 
+bank_data$education <- factor(bank_data$education, 
                          levels = c("High school", 
                                     "Bachelor", 
                                     "Master", 
                                     "Doctorate"))
 
 # Boxplot comparing income across all education levels
-ggplot(data, aes(x = education, y = income, fill = education)) +
+ggplot(bank_data, aes(x = education, y = income, fill = education)) +
   geom_boxplot() +
   theme_minimal() + 
   ggtitle('Income Distribution by Education Level') +
@@ -356,8 +362,8 @@ To compare the difference in income of customer who hold a university degree or 
 
 ```{r}
 # Subset data into two groups
-university_graduates <- data |> filter(education_group == "University Degree")
-non_graduates <- data |> filter(education_group == "No University Degree")
+university_graduates <- bank_data |> filter(education_group == "University Degree")
+non_graduates <- bank_data |> filter(education_group == "No University Degree")
 
 # Calculate the mean difference and confidence interval
 mean_diff <- mean(university_graduates$income) - mean(non_graduates$income)
@@ -384,13 +390,13 @@ This part discusses whether it is appropriate to use the Central Limit Theorem w
 
 ```{r}
 # Histograms to check normality
-ggplot(data, aes(x = income)) +
+ggplot(bank_data, aes(x = income)) +
   geom_histogram(bins = 30, fill = 'blue', alpha = 0.6) +
   facet_wrap(~education_group) +
   ggtitle('Income Distribution by Education Group')
 
 # Check the sample sizes of each group
-table(data$education_group) %>% 
+table(bank_data$education_group) %>% 
   kable(col.names = c("Education level", "Count"), 
         caption = "Sample size of education groups")
 ```
@@ -401,12 +407,11 @@ To use t-test to calculate confidence interval, the sample needs to be normally 
 
 This section of analysis about education level and income seem to show that the average income would be higher as education level increases. However, these are not evidences of a causal effect. As shown in the t-test results that the confidence interval showed a large positive difference, this could imply that income has a positive relationship with education level, but it could not be summarized with causation that providing greater education would lead to higher incomes.
 
-There could be other underlying factors that are not revealed in this analysis, such as people with higher income have adequate financial support for education, or people in higher level positions are likely to be required by company to complete certain level of education. A positive relationship does not imply causation.  
-
+There could be other underlying factors that are not revealed in this analysis, such as people with higher income have adequate financial support for education, or people in higher level positions are likely to be required by company to complete certain level of education. A positive relationship does not imply causation.
 
 # Task 5
 
-This section uses Bayesian inference approach compares the difference in 80th quantile of bank customers annual income of those who holds an university degree or not. Assume an exponential distribution for the annual income, so conjugate prior λ ∼ Gamma(α,β), and posterior λ | x1,x2,...,xn ∼ Gamma(˜ α = α + n, ˜ β = β +nx). Next is simulate 10,000 values from it and calculate the difference in 80th quantile of different groups, lastly calculate 95% credible interval for it.  
+This section uses Bayesian inference approach compares the difference in 80th quantile of bank customers annual income of those who holds an university degree or not. Assume an exponential distribution for the annual income, so conjugate prior λ ∼ Gamma(α,β), and posterior λ \| x1,x2,...,xn ∼ Gamma(˜ α = α + n, ˜ β = β +nx). Next is simulate 10,000 values from it and calculate the difference in 80th quantile of different groups, lastly calculate 95% credible interval for it.
 
 ```{r}
 
@@ -438,7 +443,7 @@ tibble(Parameter = c("N_0", "N_1","Alpha","Beta",
   kable(caption = "Parameter matrix")
 ```
 
-So, the posterior for non-uni is X ~ Gamma(31,1952.8), and the posterior for uni X~Gamma(171,15894.2). The below code simulates 10,000 examples from the posterior distribution of the difference between the 80th percentile incomes between the two groups.  
+So, the posterior for non-uni is X \~ Gamma(31,1952.8), and the posterior for uni X\~Gamma(171,15894.2). The below code simulates 10,000 examples from the posterior distribution of the difference between the 80th percentile incomes between the two groups.
 
 ```{r}
 
@@ -467,4 +472,4 @@ ggplot(data.frame(p80_diff), aes(x = p80_diff)) +
   labs(title = "Posterior Distribution of 80th Percentile Difference", x = "Difference in 80th Percentile")
 ```
 
-The 95% credible interval for the difference between the 80th percentile incomes between the two groups is -2.78 and 86.07. The interval is mostly positive, which indicates that bank customers with university degree is more likely to earn a higher income than those who don't under 80th percentile.  
+The 95% credible interval for the difference between the 80th percentile incomes between the two groups is -2.78 and 86.07. The interval is mostly positive, which indicates that bank customers with university degree is more likely to earn a higher income than those who don't under 80th percentile.
