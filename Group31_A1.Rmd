@@ -1,5 +1,6 @@
 ---
-title: "Christy 24"
+title: "Group31 ETC5242 Assignment 1"
+author: "Christy Lai s29252229, MA Sun Yan Joanna 33775877"
 format: pdf
 editor: visual
 ---
