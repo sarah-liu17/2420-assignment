@@ -22,7 +22,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-
 This report conducts statistic analysis of bank customers, based on a database including data of 200 customers' annual gross income and education level.
 
 # Task 1
@@ -165,7 +164,6 @@ title("Gamma QQ Plot")
 
 Seems like both exponential and gamma distribution models fit the data better than normal distribution. In particular, exponential distribution is slightly better than gamma.
 
-
 # Task 2
 
 In this section, it will focus on estimating the 80th percentile of annual income of customers. In addition, 95% confidence intervals based on each of the estimators will be calculated.
@@ -226,8 +224,6 @@ ci_results <- tibble(
 kable(ci_results, caption = "80th Percentile Estimates and 95% Confidence Intervals for Different Distributions")
 ```
 
-
-
 # Task 3
 
 ```{r}
@@ -252,11 +248,12 @@ estimate_quantiles <- function(data, indices) {
   gamma_fit <- fitdist(sample_data, "gamma")
   
   # Return to 80th percentile
+  return(
   c(
     qnorm(0.80, mean = normal_fit$estimate[1], sd = normal_fit$estimate[2]),
     qexp(0.80, rate = exp_fit$estimate),
     qgamma(0.80, shape = gamma_fit$estimate[1], rate = gamma_fit$estimate[2])
-  )
+  ))
 }
 
 # Bootstrap sampling
@@ -292,7 +289,6 @@ ggplot(data.frame(normal_estimates), aes(x = normal_estimates)) +
   labs(title = "Bootstrap Sampling Distribution of Normal Estimator", x = "80th Percentile Estimate")
 ```
 
-
 ```{r}
 # Visualize the sampling distribution of the exponential estimator
 ggplot(data.frame(exp_estimates), aes(x = exp_estimates)) +
@@ -300,15 +296,12 @@ ggplot(data.frame(exp_estimates), aes(x = exp_estimates)) +
   labs(title = "Bootstrap Sampling Distribution of Exponential Estimator", x = "80th Percentile Estimate")
 ```
 
-
 ```{r}
 #Visualize the sampling distribution of the gamma estimator
 ggplot(data.frame(gamma_estimates), aes(x = gamma_estimates)) +
   geom_histogram(binwidth = 5, fill = "purple", alpha = 0.5) +
   labs(title = "Bootstrap Sampling Distribution of Gamma Estimator", x = "80th Percentile Estimate")
 ```
-
-
 
 # Task 4
 
@@ -407,5 +400,59 @@ To use t-test to calculate confidence interval, the sample needs to be normally 
 
 This section of analysis about education level and income seem to show that the average income would be higher as education level increases. However, these are not evidences of a causal effect. As shown in the t-test results that the confidence interval showed a large positive difference, this could imply that income has a positive relationship with education level, but it could not be summarized with causation that providing greater education would lead to higher incomes.
 
-There could be other underlying factors that are not revealed in this analysis, such as people with higher income have adequate financial support for education, or people in higher level positions are likely to be required by company to complete certain level of education. A positive relationship does not imply causation.
-S
+There could be other underlying factors that are not revealed in this analysis, such as people with higher income have adequate financial support for education, or people in higher level positions are likely to be required by company to complete certain level of education. A positive relationship does not imply causation. S
+
+
+# Task 5
+
+```{r}
+n0 <- nrow(non_graduates)
+n1 <- nrow(university_graduates)
+alpha <- 1
+beta <- 1
+alpha_tilda0 <- alpha + n0
+alpha_tilda1 <- alpha + n1
+beta_tilda0 <- beta + sum(non_graduates$income)
+beta_tilda1 <- beta + sum(university_graduates$income)
+
+tibble(Parameter = c("N_0", "N_1","Alpha","Beta",
+                     "Alpha_tilda_0","Alpha_tilda_1",
+                     "Beta_tilda_0","Beta_tilda_1"), 
+       Value = c(n0,n1,alpha,beta,alpha_tilda0,alpha_tilda1,
+                 beta_tilda0,beta_tilda1), 
+       Description = c("Number of those who doesn't have a university degree",
+                       "Number of those who has a university degree",
+                       "Shape of Gamma distribution",
+                       "Rate of Gamma distribution",
+                       "Updated shape of posterior(Gamma distribution) for non-uni",
+                       "Updated shape of posterior(Gamma distribution) for uni",
+                       "Updated rate of posterior(Gamma distribution) for non-uni",
+                       "Updated rate of posterior(Gamma distribution) for uni")) %>% 
+  kable(caption = "Parameter matrix")
+```
+
+So, the posterior for non-uni is X ~ Gamma(31,1952.8), and the posterior for uni X~Gamma(171,15894.2)
+
+```{r}
+set.seed(2420)
+lambda_0_samples <- rgamma(10000, shape = alpha_tilda0, rate = beta_tilda0)
+lambda_1_samples <- rgamma(10000, shape = alpha_tilda1, rate = beta_tilda1)
+
+
+p80_0 <- log(5) / lambda_0_samples
+p80_1 <- log(5) / lambda_1_samples
+
+
+p80_diff <- p80_1 - p80_0
+
+
+credible_interval <- quantile(p80_diff, c(0.025, 0.975))
+
+
+print(credible_interval)
+
+ggplot(data.frame(p80_diff), aes(x = p80_diff)) +
+  geom_histogram(binwidth = 0.1, fill = "blue", alpha = 0.5) +
+  labs(title = "Posterior Distribution of 80th Percentile Difference", x = "Difference in 80th Percentile")
+```
+
