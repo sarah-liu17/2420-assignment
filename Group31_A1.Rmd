@@ -33,7 +33,6 @@ This report conducts statistic analysis of bank customers, based on a database i
 
 First part would be some distribution plots and descriptive statistics of the data, and fitted distribution model.
 
-Load data and libraries we needed:
 
 ```{r, echo = FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
@@ -206,7 +205,6 @@ kable(new_results, caption = "80th Percentile Estimates based on Different Model
 
 After that, we can calculate the 95% confidence intervals for the estimates. We can first calculate the stand error for each distribution, and then use the formula $CI = \hat{\theta} \pm Z_{\alpha/2} \times SE(\hat{\theta})$, here, $\hat{\theta}$ refers to the 80th percentile of each distribution, $\ Z_{\alpha/2}$ equals to '1.96', and the $SE(\hat{\theta})$ is the stand error which is calculated.
 
-
 ```{r Task2-3}
 # Calculate the 95% CI for the estimates
 
@@ -236,11 +234,13 @@ kable(ci_results,
 In conclusion, the key statistical idea is that we use three different models, normal, exponential and gamma to estimate the 80th percentile, along with the sample based estimate for comparison. Based on the results, the 80th percentile of the normal model(162.7428) is significantly higher than the sample estimate(146.5600). However, the exponential and gamma estimates are similar and close to the sample estimate. Therefore, they are more useful and reliable than the normal estimate.
 
 # Task 3
+
 ## Simulation Process
+
 The simulation is generated in the below steps:
 
-1. To begin with, a few numbers should be clarified. As the mean = 1 / lambda, given mean = $100,000, lambda would equal to 1 / 100,000. We chose to set up the sample size to be 100, and bootstrapping for 1000 times. The assumption is that
-the annual income follows an exponential distribution, hence the original data are simulated on the basis of exponential function. 
+1.  To begin with, a few numbers should be clarified. As the mean = 1 / lambda, given mean = \$100,000, lambda would equal to 1 / 100,000. We chose to set up the sample size to be 100, and bootstrapping for 1000 times. The assumption is that the annual income follows an exponential distribution, hence the original data are simulated on the basis of exponential function.
+
 ```{r}
 set.seed(2420)
 
@@ -253,8 +253,8 @@ n_bootstrap <- 1000
 original_data <- rexp(n_sample, rate = lambda)
 ```
 
-2. We aim to simulate each of the estimators aforementioned, that are Normal, Gamma and Exponential to estimate the 80th
-quantile of the annual income. 
+2.  We aim to simulate each of the estimators aforementioned, that are Normal, Gamma and Exponential to estimate the 80th quantile of the annual income.
+
 ```{r}
 # Define a function to calculate the 80th percentile
 estimate_quantiles <- function(data, indices) {
@@ -276,13 +276,12 @@ estimate_quantiles <- function(data, indices) {
 
 ```
 
+3.  We draw 1000 samples from the original data based on the estimates calculated about the 80th quantile of income.
 
-3. We draw 1000 samples from the original data based on the estimates calculated about
-the 80th quantile of income. 
-
-Using bootstrap re-sampling, we draw 1000 samples from the original data to calculate estimates of the 80th percentile based on normal, exponential, and gamma distributions. The true 
+Using bootstrap re-sampling, we draw 1000 samples from the original data to calculate estimates of the 80th percentile based on normal, exponential, and gamma distributions. The true
 
 The main goal is to compare the 80th percentile (P80) estimates from each model using bootstrap resampling, a method that allows us to evaluate the variability of our estimates by repeatedly sampling from the data.
+
 ```{r}
 # Bootstrap sampling
 bootstrap_results <- boot(data = original_data, statistic = estimate_quantiles, 
@@ -294,10 +293,8 @@ exp_estimates <- bootstrap_results$t[, 2]
 gamma_estimates <- bootstrap_results$t[, 3]   
 ```
 
-4. It is crucial to ensure that the estimator is both accurate and consistent, hence
-bias and standard deviation(SD) are utilised to select an appropriate estimator. 
-Bias measures the how far, on average, the estimated P80 is from the true P80, and
-SD measures the variability of the estimates. 
+4.  It is crucial to ensure that the estimator is both accurate and consistent, hence bias and standard deviation(SD) are utilised to select an appropriate estimator. Bias measures the how far, on average, the estimated P80 is from the true P80, and SD measures the variability of the estimates.
+
 ```{r}
 
 
@@ -317,7 +314,9 @@ sd_gamma <- sd(gamma_estimates)
 ```
 
 ## Simulation Results
+
 ### Density plots of 80th Percentile Estimates
+
 ```{r}
 combined_estimates <- data.frame(
   estimate = c(normal_estimates, exp_estimates, gamma_estimates),
@@ -335,13 +334,11 @@ ggplot(combined_estimates, aes(x = estimate, fill = distribution)) +
        fill = "Distribution") + 
   theme_minimal()
 ```
-The normal peak is further to the right, elucidating potential
-overestimation of the annual income. Exponential and Gamma are similar and overlap
-to a large extent, though gamma exhibit more of a left-skewness, which tend to
-underestimate the income compared to the other two.
 
+The normal peak is further to the right, elucidating potential overestimation of the annual income. Exponential and Gamma are similar and overlap to a large extent, though gamma exhibit more of a left-skewness, which tend to underestimate the income compared to the other two.
 
 ### The most Appropriate estimator
+
 ```{r}
 #| label: tbl-biasd
 #| tbl-cap: the bias and standard deviation of estimators
@@ -355,27 +352,18 @@ estimates_bias_sd <- tibble(
 
 estimates_bias_sd
 ```
-The desired estimator would have low bias and low SD. According to @tbl-biasd
-- Normal: the bias(4.53) of normal estimator indicate an overestimation of consumer income, which could cause potential problems when designing the financial product. The highest SD, meaning
- the highest variability among three estimators also serve as another factor rejecting it to be an appropriate estimator.
- 
-- Exponential and **Gamma**: exponential and gamma distributions are alike in terms of the variability and the left-skewness, both underestimate the income as evident of a negative bias. However, Gamma has the minimum SD, 
-providing more consistent estimates while capturing the left-skewness of the income distribution. 
 
+The desired estimator would have low bias and low SD. According to @tbl-biasd - Normal: the bias(4.53) of normal estimator indicate an overestimation of consumer income, which could cause potential problems when designing the financial product. The highest SD, meaning the highest variability among three estimators also serve as another factor rejecting it to be an appropriate estimator.
+
+-   Exponential and **Gamma**: exponential and gamma distributions are alike in terms of the variability and the left-skewness, both underestimate the income as evident of a negative bias. However, Gamma has the minimum SD, providing more consistent estimates while capturing the left-skewness of the income distribution.
 
 ## Gamma simulation
-If the simulation is based from a gamma distribution with shape parameter not equal to 1, 
-the bias of the estimators would be expected to decrease, since the gamma estimator
-is assumed to capture the true data generating process better than the exponential. However, 
-the normal estimator may see increase in bias since the normal fit may overestimate the central tendency.
-Exponential estimator would not perform well as it is expected to show significant underestimation (negative bias) and high variability because of the mismatch in the data's characteristics.
 
+If the simulation is based from a gamma distribution with shape parameter not equal to 1, the bias of the estimators would be expected to decrease, since the gamma estimator is assumed to capture the true data generating process better than the exponential. However, the normal estimator may see increase in bias since the normal fit may overestimate the central tendency. Exponential estimator would not perform well as it is expected to show significant underestimation (negative bias) and high variability because of the mismatch in the data's characteristics.
 
 ## Insights
 
 In our analysis of customer income, we evaluated various statistical methods to estimate the 80th percentile of annual income, crucial for financial decision-making. The gamma distribution emerged as the most effective estimator due to its ability to accurately model income data, particularly for skewed distributions, providing lower variability and bias compared to normal and exponential distributions. This approach allows us to make better-informed decisions regarding product offerings and marketing strategies, ensuring that our financial products align with the actual income distribution of our customers. We recommend adopting the gamma distribution method for future analyses to enhance the relevance and effectiveness of our services.
-
-
 
 # Task 4
 
@@ -402,7 +390,7 @@ kable(income_education_summary,
 
 ```
 
-University degree holders have a higher mean income and standard deviation, with a difference of $28,400 in mean compared to non-university degree holders.
+University degree holders have a higher mean income and standard deviation, with a difference of \$28,400 in mean compared to non-university degree holders.
 
 ## Visualizing Income Distribution by Education Level
 
