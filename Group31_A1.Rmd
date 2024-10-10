@@ -167,7 +167,7 @@ title("Gamma QQ Plot")
 
 Seems like both exponential and gamma distribution models fit the data better than normal distribution. In particular, exponential distribution is slightly better than gamma.
 
-### Summary for manager
+## Summary for manager
 
 We analyzed the incomes of 200 bank customers to understand how their earnings are distributed. We started by visualizing education levels and found that most customers (66%) hold a bachelor's degree, with smaller numbers holding master's, high school, or doctorate degrees.
 
@@ -179,7 +179,10 @@ To conclude, the income distribution among your customers is highly skewed, with
 
 # Task 2
 
+## Estimate based on fitted model
+
 In this section, it will focus on estimating the 80th percentile of annual income of customers. In addition, 95% confidence intervals based on each of the estimators will be calculated. In task1, we have already fitted three distributions, which are normal, exponential and gamma distribution. Therefore, in this analysis, we use these three distributions to estimate the 80th percentile.
+
 
 ```{r Task2-1}
 # Estimate the 80th percentile using estimators based on fitted model
@@ -198,6 +201,8 @@ kable(results, caption = "80th Percentile Estimates based on Different Models")
 
 The parameter of interest is the 80th percentile of the annual income distribution. It indicates the income level at which 80% of the customers earn less than this amount. Through Table5, we can see that the normal model has the highest 80th percentile estimate, while the exponential and gamma estimates are lower. However, annual income shows a right-skewed distribution, which indicates that most people are at a lower income level, and few of them has a high salary. The normal distribution assumes the data is normally distributed, therefore, it will make the 80th percentile larger, which is not true. So, exponential and gamma estimates seem better.
 
+## Estimate based on sample quantile
+
 Although we can estimate the 80th percentile of annual income based on a particular model, it is also possible to use a statistic called 'sample quantile', which is an estimator that does not assume any specific model.
 
 ```{r Task2-2}
@@ -212,7 +217,9 @@ new_results <- tibble(
 kable(new_results, caption = "80th Percentile Estimates based on Different Models")
 ```
 
-After that, we can calculate the 95% confidence intervals for the estimates. We can first calculate the stand error for each distribution, and then use the formula $CI = \hat{\theta} \pm Z_{\alpha/2} \times SE(\hat{\theta})$, here, $\hat{\theta}$ refers to the 80th percentile of each distribution, $\ Z_{\alpha/2}$ equals to '1.96', and the $SE(\hat{\theta})$ is the stand error which is calculated.
+## Calculate the 95% CI
+
+After that, we can calculate the 95% confidence intervals for the estimates based on CLT. We can first calculate the stand error for each distribution, and then use the formula $CI = \hat{\theta} \pm Z_{\alpha/2} \times SE(\hat{\theta})$, here, $\hat{\theta}$ refers to the 80th percentile of each distribution, $\ Z_{\alpha/2}$ equals to '1.96', and the $SE(\hat{\theta})$ is the stand error which is calculated.
 
 ```{r Task2-3}
 # Calculate the 95% CI for the estimates
@@ -240,7 +247,20 @@ kable(ci_results,
       caption = "80th Percentile Estimates and 95% Confidence Intervals for Different Distributions")
 ```
 
+## Summary for manager
+
+In this section, we are interested in estimating the 80th percentile of annual incomes for customers, based on several statistical method. We have fitted three models previously, which are the normal distribution, the exponential distribution, and the gamma distribution. And for each model, we calculate an estimate of the 80th percentile and 95% confidence intervals according to CLT. In addition, we estimate the sample quantile compared to the estimates for three fitted models.
+
+### Key Assumptions
+
+We assumed that the annual income data could be modeled by normal, exponential and gamma distributions. And the estimates are based on the assumption that the fitted model can adequately capture the variability in the income data. 
+
+### Key Findings
+
+The 80th percentile income estimate for the normal distribution is approximately 162.74 dollars. The confidence interval for this estimate ranged from 150.64 dollars to 174.85 dollars. The 80th percentile income estimate for the exponential distribution is approximately 143.60 dollars. The confidence interval for this estimate ranged from 131.24 dollars to 155.97 dollars. The 80th percentile income estimate for the gamma distribution is approximately 142.74 dollars. The confidence interval for this estimate ranged from 130.85 dollars to 154.63 dollars.
+
 In conclusion, the key statistical idea is that we use three different models, normal, exponential and gamma to estimate the 80th percentile, along with the sample based estimate for comparison. Based on the results, the 80th percentile of the normal model(162.7428) is significantly higher than the sample estimate(146.5600). However, the exponential and gamma estimates are similar and close to the sample estimate. Therefore, they are more useful and reliable than the normal estimate.
+
 
 # Task 3
 
@@ -541,6 +561,6 @@ ggplot(data.frame(p80_diff), aes(x = p80_diff)) +
          "Difference in 80th Percentile")
 ```
 
-The 95% credible interval for the difference between the 80th percentile incomes between the two groups is -2.78 and 86.07. The interval is mostly positive, which indicates that bank customers with university degree is more likely to earn a higher income than those who don't under 80th percentile.  
+The 95% credible interval for the difference between the 80th percentile incomes between the two groups is -2.78 and 86.07. The interval is mostly positive, which indicates that bank customers with university degree is more likely to earn a higher income than those who don't under 80th percentile.
 
-To conclude, by using Bayesian inference approach and assuming exponential distribution, the difference between the 80th percentile incomes between the two groups after 10,000 simulations is mostly positive, with a 95% credible interval of -2.78 (-$2,780) and 86.07 ($86,070). That means the 80th percentile of annual income of bank customers who hold an university degree is likely to earn more than those who do not have a degree.  
+To conclude, by using Bayesian inference approach and assuming exponential distribution, the difference between the 80th percentile incomes between the two groups after 10,000 simulations is mostly positive, with a 95% credible interval of -2.78 (-\$2,780) and 86.07 (\$86,070). That means the 80th percentile of annual income of bank customers who hold an university degree is likely to earn more than those who do not have a degree.
