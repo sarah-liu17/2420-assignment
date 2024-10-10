@@ -1,6 +1,6 @@
 ---
 title: "ETC5242 Assignment 1 - Group 31"
-author: "Ma Sun Yan Joanna 33775877"
+author: "Ma Sun Yan Joanna 33775877" 
 date: "2024-10-06"
 output: pdf_document
 ---
@@ -32,7 +32,6 @@ bank <- read_csv(here::here("data/banksurvey.csv"))
 ```
 
 ```{r desc_plot}
-
 # Descriptive bar plot
 bank %>% 
   group_by(education) %>% 
@@ -136,6 +135,8 @@ kable(ci_results, caption = "80th Percentile Estimates and 95% Confidence Interv
 ```
 
 # Task 3
+
+
 
 # Task 4
 
