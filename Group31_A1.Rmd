@@ -183,7 +183,6 @@ To conclude, the income distribution among your customers is highly skewed, with
 
 In this section, it will focus on estimating the 80th percentile of annual income of customers. In addition, 95% confidence intervals based on each of the estimators will be calculated. In task1, we have already fitted three distributions, which are normal, exponential and gamma distribution. Therefore, in this analysis, we use these three distributions to estimate the 80th percentile.
 
-
 ```{r Task2-1}
 # Estimate the 80th percentile using estimators based on fitted model
 q80_normal <- qnorm(0.80, mean = fit_norm$estimate[1], sd = fit_norm$estimate[2])
@@ -253,14 +252,13 @@ In this section, we are interested in estimating the 80th percentile of annual i
 
 ### Key Assumptions
 
-We assumed that the annual income data could be modeled by normal, exponential and gamma distributions. And the estimates are based on the assumption that the fitted model can adequately capture the variability in the income data. 
+We assumed that the annual income data could be modeled by normal, exponential and gamma distributions. And the estimates are based on the assumption that the fitted model can adequately capture the variability in the income data.
 
 ### Key Findings
 
 The 80th percentile income estimate for the normal distribution is approximately 162.74 dollars. The confidence interval for this estimate ranged from 150.64 dollars to 174.85 dollars. The 80th percentile income estimate for the exponential distribution is approximately 143.60 dollars. The confidence interval for this estimate ranged from 131.24 dollars to 155.97 dollars. The 80th percentile income estimate for the gamma distribution is approximately 142.74 dollars. The confidence interval for this estimate ranged from 130.85 dollars to 154.63 dollars.
 
 In conclusion, the key statistical idea is that we use three different models, normal, exponential and gamma to estimate the 80th percentile, along with the sample based estimate for comparison. Based on the results, the 80th percentile of the normal model(162.7428) is significantly higher than the sample estimate(146.5600). However, the exponential and gamma estimates are similar and close to the sample estimate. Therefore, they are more useful and reliable than the normal estimate.
-
 
 # Task 3
 
@@ -382,13 +380,15 @@ estimates_bias_sd <- tibble(
 estimates_bias_sd
 ```
 
-The desired estimator would have low bias and low SD. According to @tbl-biasd - Normal: the bias(4.53) of normal estimator indicate an overestimation of consumer income, which could cause potential problems when designing the financial product. The highest SD, meaning the highest variability among three estimators also serve as another factor rejecting it to be an appropriate estimator.
+The desired estimator would have low bias and low SD. According to @tbl-biasd 
 
--   Exponential and **Gamma**: exponential and gamma distributions are alike in terms of the variability and the left-skewness, both underestimate the income as evident of a negative bias. However, Gamma has the minimum SD, providing more consistent estimates while capturing the left-skewness of the income distribution.
+- Normal: the bias(4.53) of normal estimator indicate an overestimation of consumer income, which could cause potential problems when designing the financial product. The highest SD, meaning the highest variability among three estimators also serve as another factor rejecting it to be an appropriate estimator.
+
+-   Exponential and **Gamma**: exponential and gamma distributions are alike in terms of the variability and the left-skewness, both underestimate the income as evident of a negative bias. However, Gamma has the minimum SD, providing more consistent estimates while capturing the left-skewness of the income distribution. As a result, gamma could be selected as the most appropriate estimator.
 
 ## Gamma simulation
 
-If the simulation is based from a gamma distribution with shape parameter not equal to 1, the bias of the estimators would be expected to decrease, since the gamma estimator is assumed to capture the true data generating process better than the exponential. However, the normal estimator may see increase in bias since the normal fit may overestimate the central tendency. Exponential estimator would not perform well as it is expected to show significant underestimation (negative bias) and high variability because of the mismatch in the data's characteristics.
+If the simulation is based from a gamma distribution with shape parameter not equal to 1, the bias of the estimators would be expected to decrease, since the gamma estimator is assumed to capture the true data generating process better than the exponential. However, the normal estimator may see increase in bias since the normal fit may overestimate the central tendency. Exponential estimator would not perform well as it is expected to show significant underestimation (negative bias) and high variability because of the mismatch in the data characteristics.
 
 ## Insights
 
