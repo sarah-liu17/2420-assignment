@@ -33,7 +33,6 @@ This report conducts statistic analysis of bank customers, based on a database i
 
 First part would be some distribution plots and descriptive statistics of the data, and fitted distribution model.
 
-
 ```{r, echo = FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
 library(tidyverse)
@@ -172,7 +171,7 @@ Seems like both exponential and gamma distribution models fit the data better th
 
 We analyzed the incomes of 200 bank customers to understand how their earnings are distributed. We started by visualizing education levels and found that most customers (66%) hold a bachelor's degree, with smaller numbers holding master's, high school, or doctorate degrees.
 
-Next, we looked at the spread of incomes. Most customers earn lower incomes, but there are a few outliers with significantly higher earnings. The average income is $89,200, but the median income is only $58,700, indicating that most customers earn less than the average, with a small group earning much more.
+Next, we looked at the spread of incomes. Most customers earn lower incomes, but there are a few outliers with significantly higher earnings. The average income is \$89,200, but the median income is only \$58,700, indicating that most customers earn less than the average, with a small group earning much more.
 
 To better understand the distribution of incomes, we explored three different models (normal, exponential, and gamma) that could describe the data. We found that the normal model did not fit well because it assumes a balanced spread, while the exponential and gamma models better captured the real-world situation, where most customers earn lower incomes and only a few earn much higher amounts.
 
@@ -480,7 +479,6 @@ There could be other underlying factors that are not revealed in this analysis, 
 
 # Task 5
 
-
 This section uses Bayesian inference approach compares the difference in 80th quantile of bank customers annual income of those who holds an university degree or not. Assume an exponential distribution for the annual income, so conjugate prior $\lambda \sim \text{Gamma}(\alpha, \beta)$, and posterior $\lambda \mid x_1, x_2, \dots, x_n \sim \text{Gamma}(\tilde{\alpha} = \alpha + n, \tilde{\beta} = \beta + n\bar{x})$. Next is simulate 10,000 values from it and calculate the difference in 80th quantile of different groups, lastly calculate 95% credible interval for it. In addition, we assume that the mean and the variance of the prior all equal to '1', so we can calculate the alpha and the beta.
 
 ```{r}
@@ -543,4 +541,6 @@ ggplot(data.frame(p80_diff), aes(x = p80_diff)) +
          "Difference in 80th Percentile")
 ```
 
-The 95% credible interval for the difference between the 80th percentile incomes between the two groups is -2.78 and 86.07. The interval is mostly positive, which indicates that bank customers with university degree is more likely to earn a higher income than those who don't under 80th percentile.
+The 95% credible interval for the difference between the 80th percentile incomes between the two groups is -2.78 and 86.07. The interval is mostly positive, which indicates that bank customers with university degree is more likely to earn a higher income than those who don't under 80th percentile.  
+
+To conclude, by using Bayesian inference approach and assuming exponential distribution, the difference between the 80th percentile incomes between the two groups after 10,000 simulations is mostly positive, with a 95% credible interval of -2.78 (-$2,780) and 86.07 ($86,070). That means the 80th percentile of annual income of bank customers who hold an university degree is likely to earn more than those who do not have a degree.  
