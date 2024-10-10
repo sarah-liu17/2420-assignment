@@ -1,6 +1,10 @@
 ---
 title: "Group31 ETC5242 Assignment 1"
-author: "Christy Lai 29252229, MA Sun Yan Joanna 33775877, Jiwen Zhou 33529086, Sarah Liu 34500006"
+author:   
+- "Christy Lai 29252229"
+- "MA Sun Yan Joanna 33775877"
+- "Jiwen Zhou 33529086"
+- "Sarah Liu 34500006"
 format: pdf
 editor: visual
 ---
@@ -86,7 +90,7 @@ We calculate the summary statistics to get more detailed insights into the distr
 
 ```{r}
 # Descriptive statistics
-summary_stats <- bank_data |>
+summary_stats <- bank_data %>% 
   summarize(
     Mean = round(mean(income), 1),
     Median = median(income),
@@ -167,7 +171,7 @@ Seems like both exponential and gamma distribution models fit the data better th
 
 # Task 2
 
-In this section, it will focus on estimating the 80th percentile of annual income of customers. In addition, 95% confidence intervals based on each of the estimators will be calculated.
+In this section, it will focus on estimating the 80th percentile of annual income of customers. In addition, 95% confidence intervals based on each of the estimators will be calculated. In task1, we have already fitted three distributions, which are normal, exponential and gamma distribution. Therefore, in this analysis, we use these three distributions to estimate the 80th percentile.
 
 ```{r Task2-1}
 # Estimate the 80th percentile using estimators based on fitted model
@@ -184,9 +188,7 @@ results <- tibble(
 kable(results, caption = "80th Percentile Estimates based on Different Models")
 ```
 
-The parameter of interest is the 80th percentile of the annual income distribution. It indicates the income level at which 80% of the customers earn less than this amount. In task1, we have already fitted three distributions, which are normal, exponential and gamma distribution. Therefore, in this analysis, we use these three distributions to estimate the 80th percentile.
-
-Through Table5, we can see that the normal model has the highest 80th percentile estimate, while the exponential and gamma estimates are lower. However, annual income shows a right-skewed distribution, which indicates that most people are at a lower income level, and few of them has a high salary. The normal distribution assumes the data is normally distributed, therefore, it will make the 80th percentile larger, which is not true. So, exponential and gamma estimates seem better.
+The parameter of interest is the 80th percentile of the annual income distribution. It indicates the income level at which 80% of the customers earn less than this amount. Through Table5, we can see that the normal model has the highest 80th percentile estimate, while the exponential and gamma estimates are lower. However, annual income shows a right-skewed distribution, which indicates that most people are at a lower income level, and few of them has a high salary. The normal distribution assumes the data is normally distributed, therefore, it will make the 80th percentile larger, which is not true. So, exponential and gamma estimates seem better.
 
 Although we can estimate the 80th percentile of annual income based on a particular model, it is also possible to use a statistic called 'sample quantile', which is an estimator that does not assume any specific model.
 
@@ -202,7 +204,8 @@ new_results <- tibble(
 kable(new_results, caption = "80th Percentile Estimates based on Different Models")
 ```
 
-After that, we can calculate the 95% confidence intervals for the estimates.
+After that, we can calculate the 95% confidence intervals for the estimates. We can first calculate the stand error for each distribution, and then use the formula $CI = \hat{\theta} \pm Z_{\alpha/2} \times SE(\hat{\theta})$, here, $\hat{\theta}$ refers to the 80th percentile of each distribution, $\ Z_{\alpha/2}$ equals to '1.96', and the $SE(\hat{\theta})$ is the stand error which is calculated.
+
 
 ```{r Task2-3}
 # Calculate the 95% CI for the estimates
@@ -226,7 +229,8 @@ ci_results <- tibble(
   `Upper Bound (95% CI)` = c(ci_normal[2], ci_exp[2], ci_gamma[2])
 )
 
-kable(ci_results, caption = "80th Percentile Estimates and 95% Confidence Intervals for Different Distributions")
+kable(ci_results, 
+      caption = "80th Percentile Estimates and 95% Confidence Intervals for Different Distributions")
 ```
 
 In conclusion, the key statistical idea is that we use three different models, normal, exponential and gamma to estimate the 80th percentile, along with the sample based estimate for comparison. Based on the results, the 80th percentile of the normal model(162.7428) is significantly higher than the sample estimate(146.5600). However, the exponential and gamma estimates are similar and close to the sample estimate. Therefore, they are more useful and reliable than the normal estimate.
@@ -379,17 +383,16 @@ This section will be focusing on the relationship between customer education lev
 
 ```{r}
 #| label: tbl-eduincome
-#| tbl-cap: Income comparison of university degree holders
 # Recode education levels into two groups: 
 # "University Degree" vs "No University Degree"
-bank_data <- bank_data |>
+bank_data <- bank_data %>% 
   mutate(education_group = ifelse(education %in% 
                                   c("Bachelor", "Master", "Doctorate"), 
                                   "University Degree", "No University Degree"))
 
 # Group summary of income by education group
-income_education_summary <- bank_data |>
-  group_by(education_group) |>
+income_education_summary <- bank_data %>% 
+  group_by(education_group) %>% 
   summarise(mean_income = round(mean(income), 1), 
             sd_income = round(sd(income), 1), 
             n = n())
@@ -429,8 +432,8 @@ To compare the difference in income of customer who hold a university degree or 
 
 ```{r}
 # Subset data into two groups
-university_graduates <- bank_data |> filter(education_group == "University Degree")
-non_graduates <- bank_data |> filter(education_group == "No University Degree")
+university_graduates <- bank_data %>%  filter(education_group == "University Degree")
+non_graduates <- bank_data %>%  filter(education_group == "No University Degree")
 
 # Calculate the mean difference and confidence interval
 mean_diff <- mean(university_graduates$income) - mean(non_graduates$income)
@@ -479,7 +482,7 @@ There could be other underlying factors that are not revealed in this analysis, 
 
 # Task 5
 
-This section uses Bayesian inference approach compares the difference in 80th quantile of bank customers annual income of those who holds an university degree or not. Assume an exponential distribution for the annual income, so conjugate prior λ ∼ Gamma(α,β), and posterior λ \| x1,x2,...,xn ∼ Gamma(˜ α = α + n, ˜ β = β +nx). Next is simulate 10,000 values from it and calculate the difference in 80th quantile of different groups, lastly calculate 95% credible interval for it.
+This section uses Bayesian inference approach compares the difference in 80th quantile of bank customers annual income of those who holds an university degree or not. Assume an exponential distribution for the annual income, so conjugate prior $\lambda \sim \text{Gamma}(\alpha, \beta)$, and posterior $\lambda \mid x_1, x_2, \dots, x_n \sim \text{Gamma}(\tilde{\alpha} = \alpha + n, \tilde{\beta} = \beta + n\bar{x})$. Next is simulate 10,000 values from it and calculate the difference in 80th quantile of different groups, lastly calculate 95% credible interval for it. In addition, we assume that the mean and the variance of the prior all equal to '1', so we can calculate the alpha and the beta.
 
 ```{r}
 
@@ -520,14 +523,14 @@ set.seed(2420)
 lambda_0_samples <- rgamma(10000, shape = alpha_tilda0, rate = beta_tilda0)
 lambda_1_samples <- rgamma(10000, shape = alpha_tilda1, rate = beta_tilda1)
 
-
+# Manually calculate the 80th percentile of each lambda
 p80_0 <- log(5) / lambda_0_samples
 p80_1 <- log(5) / lambda_1_samples
 
-
+# Calculate the the 80th percentile diff
 p80_diff <- p80_1 - p80_0
 
-
+# Calculate the 95% CI
 credible_interval <- quantile(p80_diff, c(0.025, 0.975))
 
 
